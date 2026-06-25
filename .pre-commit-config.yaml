@@ -1,0 +1,50 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: "26.5.1"
+    hooks:
+      - id: black
+        language_version: python3.13
+
+  - repo: https://github.com/PyCQA/isort
+    rev: "7.0.0"
+    hooks:
+      - id: isort
+        args: ["--profile=black"]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: "7.3.0"
+    hooks:
+      - id: flake8
+        args: ["--max-line-length=100"]
+        additional_dependencies: ["flake8-docstrings==1.7.0"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: "1.9.4"
+    hooks:
+      - id: bandit
+        args: ["-c", ".bandit"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.6.0"
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v3.3.3"
+    hooks:
+      - id: prettier
+        types_or: [markdown, json, yaml]
+
+ci:
+  autofix_commit_msg: "fix: auto-format with pre-commit hooks"
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "chore: update pre-commit hooks"
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
