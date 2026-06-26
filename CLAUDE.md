@@ -70,6 +70,53 @@ from luxorliving_baos import BAOSRestClient, AuthenticationError, TunnelingError
 
 The refactoring (2026-06-25) removed embedded copies of rest_client.py and circuit_breaker.py from luxorliving, making this repo the single source of truth.
 
+## Git Workflow
+
+**Branch Strategy:**
+
+- Never commit directly to `main`
+- All changes via feature branch: `git checkout -b feature/your-feature-name`
+- Prefix branches: `feature/`, `fix/`, `docs/`, `chore/`
+- Example: `feature/add-tunneling-timeout`, `fix/circuit-breaker-race-condition`
+
+**Merge to Main:**
+
+1. Create pull request from feature branch
+2. Pass all pre-merge checks (see below)
+3. Code review approval required
+4. Merge with commit message referencing the branch: `Merge branch 'feature/name' into main`
+
+## Pre-Merge Checks
+
+**All of these must pass before merging to main:**
+
+```bash
+# 1. Unit tests (serial, no parallel execution)
+pytest tests/ -n 1 --cov=src/luxorliving_baos --cov-report=term-missing
+
+# 2. Coverage threshold: 44%+ (or existing baseline, whichever is higher)
+# Check output: look for "TOTAL" line, must show >= 44%
+
+# 3. Type hints: mypy passes without errors
+mypy src/
+
+# 4. Linting: all tools pass
+flake8 src/ tests/
+black --check src/ tests/
+isort --check-only src/ tests/
+
+# 5. Security audit: bandit finds no HIGH or CRITICAL issues
+bandit -r src/
+
+# 6. Code builds successfully
+python -m build
+
+# 7. Package installs and imports work
+pip install -e . && python -c "from luxorliving_baos import BAOSRestClient, get_knx_circuit_breaker; print('OK')"
+```
+
+**If any check fails:** Fix locally on feature branch, push, and re-run checks. CI/CD (GitHub Actions) will also run these automatically.
+
 ## For Future Changes
 
 **New feature checklist:**
