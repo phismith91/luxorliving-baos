@@ -1,6 +1,10 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
   workflow_dispatch:
     inputs:
       pypi_environment:
@@ -19,6 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "target=pypi" >> $GITHUB_OUTPUT
+          else
+            echo "target=${{ github.event.inputs.pypi_environment }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,14 +47,14 @@ jobs:
         run: twine check dist/*
 
       - name: Publish to TestPyPI
-        if: github.event.inputs.pypi_environment == 'testpypi'
+        if: steps.env.outputs.target == 'testpypi'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
       - name: Publish to PyPI
-        if: github.event.inputs.pypi_environment == 'pypi'
+        if: steps.env.outputs.target == 'pypi'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
