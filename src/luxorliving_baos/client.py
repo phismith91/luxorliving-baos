@@ -85,7 +85,7 @@ class BAOSRestClient:
         self._owns_session = session is None
         self._timeout = aiohttp.ClientTimeout(total=30)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> BAOSRestClient:
         """Context manager entry."""
         if self._owns_session and self._session is None:
             loop = asyncio.get_running_loop()
@@ -96,7 +96,7 @@ class BAOSRestClient:
             )
         return self
 
-    async def __aexit__(self, *args):
+    async def __aexit__(self, *args: Any) -> None:
         """Context manager exit - ensures cleanup."""
         await self.logout()
         # Only close sessions we own; injected (shared) sessions belong to caller.
@@ -131,7 +131,7 @@ class BAOSRestClient:
         _LOGGER.debug(f"Attempting login to {url} with user: {username}")
 
         try:
-            async with self._session.post(url, json=payload, timeout=self._timeout) as response:
+            async with self._session.post(url, json=payload, timeout=self._timeout) as response:  # type: ignore[union-attr]
                 _LOGGER.debug(f"Login response status: {response.status}")
                 _LOGGER.debug(f"Login response headers: {response.headers}")
 
@@ -166,7 +166,7 @@ class BAOSRestClient:
         except aiohttp.ClientError as e:
             raise AuthenticationError(f"Network error during login: {e}")
 
-    async def logout(self):
+    async def logout(self) -> None:
         """
         Logout and end session.
 
@@ -271,7 +271,7 @@ class BAOSRestClient:
 
         return cast(bool, await circuit_breaker.call(_enable_tunneling))
 
-    async def disable_tunneling(self) -> bool:
+    async def disable_tunneling(self) -> bool:  # noqa: ARG002
         """
         Disable KNX Tunneling with circuit breaker protection.
 
@@ -333,7 +333,7 @@ class BAOSRestClient:
                 _LOGGER.warning(f"Get tunneling status returned {response.status}")
                 return {"enabled": False, "connectedClients": 0, "maxSlots": 1}
 
-    def _ensure_authenticated(self):
+    def _ensure_authenticated(self) -> None:
         """Raise AuthenticationError if not logged in."""
         if not self.session_token:
             raise AuthenticationError("Not logged in. Call login() first.")
