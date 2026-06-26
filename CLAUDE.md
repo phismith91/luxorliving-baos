@@ -63,12 +63,20 @@ twine upload dist/*
 
 ## Integration with Home Assistant
 
-The luxorliving integration (sibling repo) imports this as a PyPI dependency:
+The luxorliving integration (sibling repo `/home/philipp/projects/luxorliving  (public + maintance)`) imports this as a PyPI dependency:
 ```python
 from luxorliving_baos import BAOSRestClient, AuthenticationError, TunnelingError
 ```
 
 The refactoring (2026-06-25) removed embedded copies of rest_client.py and circuit_breaker.py from luxorliving, making this repo the single source of truth.
+
+**Critical Coupling:** This library is NOT isolated—bugs and gaps here directly impact luxorliving users. Key dependencies:
+
+- `circuit_breaker.py` → used by luxorliving's knx_gateway.py (KNX state machine). Failures = integration crashes.
+- `client.py` (login, tunneling) → used by config_flow, coordinator, repairs. Auth errors must be clear.
+- `_make_ssl_context()` → IP1 legacy TLS workaround. Regression = "SSLV3_ALERT_HANDSHAKE_FAILURE" in production.
+
+**Sync Rule:** Any bug or test gap discovered in this repo that affects luxorliving's critical paths (coordinator, config_flow, knx_gateway) must be backported to luxorliving's own tests. This repo is the reference; luxorliving must keep pace.
 
 ## Git Workflow
 
